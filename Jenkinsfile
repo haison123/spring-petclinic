@@ -21,7 +21,7 @@ pipeline {
                     }
 
                     // Clone the repository with the corresponding branch
-                    git branch: branchName, url: 'https://github.com/yourusername/your-spring-boot-project.git'
+                    git branch: branchName, url: 'https://github.com/haison123/spring-petclinic.git'
                     echo " Branch ${env.BRANCH_NAME} is cloned"
                 }
             }
