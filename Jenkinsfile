@@ -60,7 +60,7 @@ pipeline {
                             nohup java -jar /home/ubuntu/spring-petclinic-*.jar &
                             export APP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health)
                             if [ "$APP_STATUS" == "200" ]; then echo "[INFO] APPLICATION STARTED SUCCESSFULLY..."; else echo "[ERROR] UNKNOWN ERROR"; fi
-                          """
+                          """, interpreter: '/bin/sh'
                     }
                 }
             }
