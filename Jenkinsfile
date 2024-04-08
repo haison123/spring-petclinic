@@ -4,28 +4,28 @@ pipeline {
             // Use an image with Maven installed
             image 'maven:latest'
             // Set up a volume to mount the Maven repository to avoid downloading dependencies on each build
-            args '-v $HOME/.m2:/root/.m2'
+            // args '-v $HOME/.m2:/root/.m2'
         }
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                script {
-                    // Determine the branch being built
-                    def branchName = env.BRANCH_NAME
+        // stage('Checkout') {
+        //     steps {
+        //         script {
+        //             // Determine the branch being built
+        //             def branchName = env.BRANCH_NAME
 
-                    // Set the default branch to 'develop' if BRANCH_NAME is null or empty
-                    if (!branchName) {
-                        branchName = 'develop'
-                    }
+        //             // Set the default branch to 'develop' if BRANCH_NAME is null or empty
+        //             if (!branchName) {
+        //                 branchName = 'develop'
+        //             }
 
-                    // Clone the repository with the corresponding branch
-                    git branch: branchName, url: 'https://github.com/haison123/spring-petclinic.git'
-                    echo " Branch ${env.BRANCH_NAME} is cloned"
-                }
-            }
-        }
+        //             // Clone the repository with the corresponding branch
+        //             git branch: branchName, url: 'https://github.com/haison123/spring-petclinic.git'
+        //             echo " Branch ${env.BRANCH_NAME} is cloned"
+        //         }
+        //     }
+        // }
 
         stage('Build') {
             steps {
