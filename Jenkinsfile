@@ -53,11 +53,11 @@ pipeline {
                                 sshTransfer(
                                     sourceFiles: 'target/*.jar',
                                     removePrefix: 'target/',
-                                    remoteDirectory: '/home/ubuntu'
+                                    remoteDirectory: '.'
                                 ),
                                 sshTransfer(
                                     sourceFiles: 'deploy.sh',
-                                    remoteDirectory: '/home/ubuntu'
+                                    remoteDirectory: '.'
                                 )
                             ]
                         )
