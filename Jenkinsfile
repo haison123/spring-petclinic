@@ -15,7 +15,7 @@ pipeline {
                     // Determine the branch being built
                     def branchName = env.BRANCH_NAME
 
-                    // Set the default branch to 'master' if BRANCH_NAME is null or empty
+                    // Set the default branch to 'develop' if BRANCH_NAME is null or empty
                     if (!branchName) {
                         branchName = 'develop'
                     }
@@ -46,11 +46,11 @@ pipeline {
                 script {
                     // SCP the .jar file to the server
                     sshagent(credentials: ['deploy-server']) {
-                        sh "scp -o StrictHostKeyChecking=no target/*.jar ubuntu@http://ec2-35-173-171-21.compute-1.amazonaws.com/:/home/ubuntu"
+                        sh "scp -o StrictHostKeyChecking=no target/*.jar ubuntu@ec2-35-173-171-21.compute-1.amazonaws.com:/home/ubuntu/"
 
                         // SSH into the server and run the .jar file using nohup
                         sshCommand remote: [
-                            host: 'http://ec2-35-173-171-21.compute-1.amazonaws.com/',
+                            host: 'ec2-35-173-171-21.compute-1.amazonaws.com',
                             user: 'ubuntu',
                             credentialsId: 'deploy-server'
                         ], command: """
@@ -60,7 +60,7 @@ pipeline {
                             nohup java -jar /home/ubuntu/spring-petclinic-*.jar &
                             export APP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health)
                             if [ "$APP_STATUS" == "200" ]; then echo "[INFO] APPLICATION STARTED SUCCESSFULLY..."; else echo "[ERROR] UNKNOWN ERROR"; fi
-                          """, interpreter: '/bin/sh'
+                          """
                     }
                 }
             }
@@ -73,7 +73,7 @@ pipeline {
             echo 'Pipeline successful! Artifact saved in /target folder.'
         }
         failure {
-            echo 'pipeline failed!'
+            echo 'Pipeline failed!'
         }
     }
 }
