@@ -4,6 +4,7 @@ pipeline {
             // Use an image with Maven installed
             image 'maven:latest'
             // Set up a volume to mount the Maven repository to avoid downloading dependencies on each build
+            args '-u root'
             // args '-v $HOME/.m2:/root/.m2'
         }
     }
