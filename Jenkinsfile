@@ -52,5 +52,5 @@ pipeline {
     //     failure {
     //         echo 'Pipeline failed!'
     //     }
-    // }
+    }
 }
