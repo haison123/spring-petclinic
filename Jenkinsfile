@@ -1,8 +1,3 @@
-def remote=[:]
-remote.name = 'deploy-server'
-remote.host = '35.173.171.21'
-remote.allowAnyHosts = true
-
 pipeline {
     // agent any
     agent {
@@ -14,46 +9,48 @@ pipeline {
             // args '-v $HOME/.m2:/root/.m2'
         }
     }
-    
-    environment {
-        DEPLOY_CRES = credentials('deploy-server')
-    }
 
     stages {
-        stage('Build') {
-            steps {
-                // Build the Maven project
-                sh 'mvn clean package'
-            }
-        }
+        // stage('Build') {
+        //     steps {
+        //         // Build the Maven project
+        //         sh 'mvn clean package'
+        //     }
+        // }
 
-        stage('Unit Test') {
-            steps {
-                // Run unit tests
-                sh 'mvn test'
-            }
-        }
+        // stage('Unit Test') {
+        //     steps {
+        //         // Run unit tests
+        //         sh 'mvn test'
+        //     }
+        // }
         
         stage('Deploy') {
             steps {
-                script {
-                    remote.user = env.DEPLOY_CRES_USR
-                    remote.identity = env.DEPLOY_CRES_PWS
-                    sshCommand(remote: remote, command: "echo 123")       
-                }
-                echo "hello"
-                sshCommand(remote: remote, command: "echo 123")       
+                // Use withCredentials to securely access SSH private key
+                withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server', keyFileVariable: 'SSH_KEY')]) {
+                    // Define the SSH command to run the script
+                    def sshCommand = '''
+                        echo "hello world"
+                    '''
+
+                    // Execute SSH command
+                    sshCommand remote: [
+                        host: '35.173.171.21',
+                        user: 'ubuntu',  // Replace with your remote server username
+                        identityFile: env.SSH_KEY  // Use the injected SSH key
+                    ], command: sshCommand
             }
         }
     }
 
-    post {
-        success {
-            stash includes: 'target/*.jar', name: 'my-artifact'
-            echo 'Pipeline successful! Artifact saved in /target folder.'
-        }
-        failure {
-            echo 'Pipeline failed!'
-        }
-    }
+    // post {
+    //     success {
+    //         stash includes: 'target/*.jar', name: 'my-artifact'
+    //         echo 'Pipeline successful! Artifact saved in /target folder.'
+    //     }
+    //     failure {
+    //         echo 'Pipeline failed!'
+    //     }
+    // }
 }
