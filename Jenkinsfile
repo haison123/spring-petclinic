@@ -1,17 +1,15 @@
 pipeline {
-    // agent any
-    agent {
-        docker {
-            // Use an image with Maven installed
-            image 'maven:latest'
-            // Set up a volume to mount the Maven repository to avoid downloading dependencies on each build
-            args '-u root'
-            // args '-v $HOME/.m2:/root/.m2'
-        }
-    }
+    agent none
 
     stages {
-        // stage('Build') {
+        stage('Build') {
+        //     agent {
+        //         docker {
+        //             image 'maven:latest'
+        //             args '-u root'
+        //             args '-v $HOME/.m2:/root/.m2'
+        //         }
+        //     }
         //     steps {
         //         // Build the Maven project
         //         sh 'mvn clean package'
@@ -19,6 +17,13 @@ pipeline {
         // }
 
         // stage('Unit Test') {
+        //     agent {
+        //         docker {
+        //             image 'maven:latest'
+        //             args '-u root'
+        //             args '-v $HOME/.m2:/root/.m2'
+        //         }
+        //     }
         //     steps {
         //         // Run unit tests
         //         sh 'mvn test'
