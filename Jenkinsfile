@@ -10,9 +10,9 @@ pipeline {
         }
     }
     
-    environment {
+    // environment {
         // DEPLOY_CRES=credentials('deploy-server')
-    }
+    // }
 
     stages {
         stage('Build') {
