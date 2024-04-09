@@ -26,6 +26,13 @@ pipeline {
         // }
         
         stage('Deploy') {
+            agent {
+                docker {
+                    image 'dockette/ssh:latest'
+                    args '-u root'
+                }
+            }
+            
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server', keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
                     sh '''
