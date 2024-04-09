@@ -5,7 +5,7 @@ pipeline {
             image 'maven:latest'
             // Set up a volume to mount the Maven repository to avoid downloading dependencies on each build
             args '-u root'
-            // args '-v $HOME/.m2:/root/.m2'
+            args '-v $HOME/.m2:/root/.m2'
         }
     }
     environment {
@@ -13,12 +13,26 @@ pipeline {
     }
 
     stages {
-        stage('Deploy') {
+        stage('Build') {
             steps {
-                echo "hello"
+                // Build the Maven project
+                sh 'mvn clean package'
             }
         }
-    }
+
+        stage('Unit Test') {
+            steps {
+                // Run unit tests
+                sh 'mvn test'
+            }
+        }
+
+    //     stage('Deploy') {
+    //         steps {
+    //             echo "hello"
+    //         }
+    //     }
+    // }
 
     post {
         success {
