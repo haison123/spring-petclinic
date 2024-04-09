@@ -17,7 +17,7 @@ pipeline {
         DEPLOY_CRES=credentials('deploy-server')
     }
 
-    // stages {
+    stages {
     //     stage('Build') {
     //         steps {
     //             // Build the Maven project
