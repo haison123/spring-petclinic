@@ -16,7 +16,7 @@ pipeline {
     }
     
     environment {
-        DEPLOY_CRES=credentials('deploy-server')
+        DEPLOY_CRES = credentials('deploy-server')
     }
 
     stages {
