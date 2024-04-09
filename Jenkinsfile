@@ -1,7 +1,7 @@
-def remote=[:]
-remote.name = 'deploy-server'
-remote.host = '35.173.171.21'
-remote.allowAnyHosts = true
+// def remote=[:]
+// remote.name = 'deploy-server'
+// remote.host = '35.173.171.21'
+// remote.allowAnyHosts = true
 
 pipeline {
     agent {
@@ -10,30 +10,31 @@ pipeline {
             image 'maven:latest'
             // Set up a volume to mount the Maven repository to avoid downloading dependencies on each build
             args '-u root'
-            args '-v $HOME/.m2:/root/.m2'
+            // args '-v $HOME/.m2:/root/.m2'
         }
     }
     environment {
         DEPLOY_CRES=credentials('deploy-server')
     }
 
-    stages {
-        stage('Build') {
-            steps {
-                // Build the Maven project
-                sh 'mvn clean package'
-            }
-        }
+    // stages {
+    //     stage('Build') {
+    //         steps {
+    //             // Build the Maven project
+    //             sh 'mvn clean package'
+    //         }
+    //     }
 
-        stage('Unit Test') {
-            steps {
-                // Run unit tests
-                sh 'mvn test'
-            }
-        }
+    //     stage('Unit Test') {
+    //         steps {
+    //             // Run unit tests
+    //             sh 'mvn test'
+    //         }
+    //     }
 
         stage('Deploy') {
             steps {
+                echo "hello"
                 script {
                     // Publish jar file and deploy.sh
                     // sshPublisher(publishers: [
@@ -59,9 +60,9 @@ pipeline {
                     //     )
                     // ])
 
-                    remote.user = env.DEPLOY_CRES_USR
-                    remote.identity = env.DEPLOY_CRES_PWS
-                    sshCommand(remote: remote, command: "echo 123")
+                    // remote.user = env.DEPLOY_CRES_USR
+                    // remote.identity = env.DEPLOY_CRES_PWS
+                    // sshCommand(remote: remote, command: "echo 123")       
                 }
             }
         }
