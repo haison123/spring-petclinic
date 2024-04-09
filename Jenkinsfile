@@ -27,19 +27,12 @@ pipeline {
         
         stage('Deploy') {
             steps {
-                // Use withCredentials to securely access SSH private key
-                withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server', keyFileVariable: 'SSH_KEY')]) {
-                    // Define the SSH command to run the script
-                    def sshCommand = '''
-                        echo "hello world"
+                withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server', keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
+                    sh '''
+                    ssh -i $SSH_KEY $USER_NAME@35.173.171.21 
+                    ls /home/ubuntu
                     '''
-
-                    // Execute SSH command
-                    sshCommand remote: [
-                        host: '35.173.171.21',
-                        user: 'ubuntu',  // Replace with your remote server username
-                        identityFile: env.SSH_KEY  // Use the injected SSH key
-                    ], command: sshCommand
+                }
             }
         }
     }
@@ -52,5 +45,5 @@ pipeline {
     //     failure {
     //         echo 'Pipeline failed!'
     //     }
-    }
+    // }
 }
