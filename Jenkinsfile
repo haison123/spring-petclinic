@@ -42,7 +42,7 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server', keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
                     sh '''
                     ssh -i $SSH_KEY $USER_NAME@35.173.171.21 
-                    ipconfig
+                    ifconfig
                     '''
                 }
             }
