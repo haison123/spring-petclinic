@@ -1,3 +1,8 @@
+def remote=[:]
+remote.name = 'deploy-server'
+remote.host = '35.173.171.21'
+remote.allowAnyHosts = true
+
 pipeline {
     // agent any
     agent {
@@ -10,9 +15,9 @@ pipeline {
         }
     }
     
-    // environment {
-        // DEPLOY_CRES=credentials('deploy-server')
-    // }
+    environment {
+        DEPLOY_CRES=credentials('deploy-server')
+    }
 
     stages {
         stage('Build') {
@@ -28,11 +33,18 @@ pipeline {
                 sh 'mvn test'
             }
         }
-        // stage('Deploy') {
-        //     steps {
-        //         echo "hello"
-        //     }
-        // }
+        
+        stage('Deploy') {
+            steps {
+                script {
+                    remote.user = env.DEPLOY_CRES_USR
+                    remote.identity = env.DEPLOY_CRES_PWS
+                    sshCommand(remote: remote, command: "echo 123")       
+                }
+                echo "hello"
+                sshCommand(remote: remote, command: "echo 123")       
+            }
+        }
     }
 
     post {
