@@ -35,7 +35,7 @@ pipeline {
                 CRED = credentials('deploy-server')
             }
             steps {
-                scripp {
+                script {
                     def remote = [:]
                     remote.name = 'deploy-server'
                     remote.host = '35.173.171.21'
