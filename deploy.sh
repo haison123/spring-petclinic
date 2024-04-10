@@ -1,7 +1,5 @@
 #!/bin/bash
 
-sudo su 
-
 export APP_PID=$(ps -ef | grep '[j]ava -jar /home/ubuntu/spring-petclinic' | awk '{print $2}')
 if [ -z "$APP_PID" ]; then
     echo "[INFO] APPLICATION IS STARTING..."
@@ -9,7 +7,7 @@ else
     echo "[INFO] APPLICATION IS RUNNING WITH PID(S): $APP_PID"
     echo "[INFO] STOPPING THE OLD VERSION..."
     for pid in $APP_PID; do
-        sudo kill -9 $pid
+        kill -9 $pid
     done
 fi
 
