@@ -1,7 +1,7 @@
 pipeline {
     agent {
                 docker {
-                    image 'maven:latest'
+                    image 'haison123/maven-ssh:1.0.0'
                     args '-u root'
                     // args '-v $HOME/.m2:/root/.m2'
                 }
@@ -12,13 +12,6 @@ pipeline {
             steps {
                 // Build the Maven project
                 sh 'mvn clean compile -DskipTests'
-                // sh '''
-                //     echo "TESTTTTTT'
-                //     pwd
-                //     ls
-                //     echo  "TESTTTTTT' > test.txt
-                // '''
-                
             }
         }
 
@@ -26,12 +19,6 @@ pipeline {
             steps {
                 // Run unit tests
                 sh 'mvn test'
-                // sh '''
-                //     echo "TESTTTTTT'
-                //     pwd
-                //     ls
-                //     echo  "TESTTTTTT' > test.txt
-                // '''
             }
         }
 
@@ -63,13 +50,13 @@ pipeline {
         }
     }
 
-    // post {
-    //     success {
-    //         stash includes: 'target/*.jar', name: 'my-artifact'
-    //         echo 'Pipeline successful! Artifact saved in /target folder.'
-    //     }
-    //     failure {
-    //         echo 'Pipeline failed!'
-    //     }
-    // }
+    post {
+        success {
+            stash includes: 'target/*.jar', name: 'my-artifact'
+            echo 'Pipeline successful! Artifact saved in /target folder.'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
 }
