@@ -34,7 +34,7 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server', keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
                     sh '''
-                        ssh -i $SSH_KEY $USER_NAME@35.173.171.21 << EOF
+                        ssh -o StrictHostKeyChecking=no -i $SSH_KEY $USER_NAME@35.173.171.21 << EOF
                             ip a
                             ls /home/ubuntu
                     '''
