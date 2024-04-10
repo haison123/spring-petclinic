@@ -13,12 +13,12 @@ pipeline {
             steps {
                 // Build the Maven project
                 sh 'mvn clean compile -DskipTests'
-                sh '''
-                    echo "TESTTTTTT'
-                    pwd
-                    ls
-                    echo  "TESTTTTTT' > test.txt
-                '''
+                // sh '''
+                //     echo "TESTTTTTT'
+                //     pwd
+                //     ls
+                //     echo  "TESTTTTTT' > test.txt
+                // '''
                 
             }
         }
@@ -33,12 +33,12 @@ pipeline {
             steps {
                 // Run unit tests
                 sh 'mvn test'
-                sh '''
-                    echo "TESTTTTTT'
-                    pwd
-                    ls
-                    echo  "TESTTTTTT' > test.txt
-                '''
+                // sh '''
+                //     echo "TESTTTTTT'
+                //     pwd
+                //     ls
+                //     echo  "TESTTTTTT' > test.txt
+                // '''
             }
         }
 
