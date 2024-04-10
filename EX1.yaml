@@ -7,12 +7,19 @@ pipeline {
                 docker {
                     image 'maven:latest'
                     args '-u root'
-                    args '-v $HOME/.m2:/root/.m2'
+                    # args '-v $HOME/.m2:/root/.m2'
                 }
             }
             steps {
                 // Build the Maven project
-                sh 'mvn clean package'
+                sh 'mvn clean compile -DskipTests'
+                sh '''
+                    echo "TESTTTTTT'
+                    pwd
+                    ls
+                    echo  "TESTTTTTT' > test.txt
+                '''
+                
             }
         }
 
@@ -21,14 +28,33 @@ pipeline {
                 docker {
                     image 'maven:latest'
                     args '-u root'
-                    args '-v $HOME/.m2:/root/.m2'
                 }
             }
             steps {
                 // Run unit tests
                 sh 'mvn test'
+                sh '''
+                    echo "TESTTTTTT'
+                    pwd
+                    ls
+                    echo  "TESTTTTTT' > test.txt
+                '''
             }
         }
+
+        stage('Package') {
+            agent {
+                docker {
+                    image 'maven:latest'
+                    args '-u root'
+                }
+            }
+            steps {
+                // Build the Maven project
+                sh 'mvn package'
+            }
+        }
+
         
         stage('Deploy') {
             agent {
