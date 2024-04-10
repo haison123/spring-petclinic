@@ -1,15 +1,14 @@
 pipeline {
-    agent none
-
-    stages {
-        stage('Build') {
-            agent {
+    agent {
                 docker {
                     image 'maven:latest'
                     args '-u root'
                     // args '-v $HOME/.m2:/root/.m2'
                 }
             }
+
+    stages {
+        stage('Build') {
             steps {
                 // Build the Maven project
                 sh 'mvn clean compile -DskipTests'
@@ -24,12 +23,6 @@ pipeline {
         }
 
         stage('Unit Test') {
-            agent {
-                docker {
-                    image 'maven:latest'
-                    args '-u root'
-                }
-            }
             steps {
                 // Run unit tests
                 sh 'mvn test'
@@ -43,12 +36,6 @@ pipeline {
         }
 
         stage('Package') {
-            agent {
-                docker {
-                    image 'maven:latest'
-                    args '-u root'
-                }
-            }
             steps {
                 // Build the Maven project
                 sh 'mvn package'
