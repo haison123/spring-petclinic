@@ -7,7 +7,7 @@ pipeline {
                 docker {
                     image 'maven:latest'
                     args '-u root'
-                    # args '-v $HOME/.m2:/root/.m2'
+                    // args '-v $HOME/.m2:/root/.m2'
                 }
             }
             steps {
