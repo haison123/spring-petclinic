@@ -9,7 +9,7 @@ else
     echo "[INFO] APPLICATION IS RUNNING WITH PID(S): $APP_PID"
     echo "[INFO] STOPPING THE OLD VERSION..."
     for pid in $APP_PID; do
-        kill -9 $pid
+        sudo kill -9 $pid
     done
 fi
 
