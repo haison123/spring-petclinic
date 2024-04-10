@@ -41,7 +41,7 @@ environment {
             steps {
                 script {
                     remote.user = env.CRED_USR
-                    remote.identity = env.CRED_PSW
+                    remote.identityFile = env.CRED_PSW
                 }
                 sshCommand remote: remote, command: "ls -lrt"
             }
