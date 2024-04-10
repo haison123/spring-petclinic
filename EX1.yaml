@@ -46,7 +46,7 @@ pipeline {
 
     post {
         success {
-            stash includes: 'target/*.jar', name: 'my-artifact'
+            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             echo 'Pipeline successful! Artifact saved in /target folder.'
         }
         failure {

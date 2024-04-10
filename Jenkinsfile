@@ -33,12 +33,13 @@ pipeline {
         stage('Deploy') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server', keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
-                    sh '''
-                        scp -o StrictHostKeyChecking=no -i $SSH_KEY deploy.sh $USER_NAME@35.173.171.21:/home/ubuntu
-                        scp -o StrictHostKeyChecking=no -i $SSH_KEY target/*.jar $USER_NAME@35.173.171.21:/home/ubuntu
-                        ssh -o StrictHostKeyChecking=no -i $SSH_KEY $USER_NAME@35.173.171.21 chmod +x /home/ubuntu/deploy.sh
-                        ssh -o StrictHostKeyChecking=no -i $SSH_KEY $USER_NAME@35.173.171.21 sudo /home/ubuntu/deploy.sh
-                    '''
+                    def remote = [:]
+                    remote.name = 'deploy-server'
+                    remote.host = '35.173.171.21'
+                    remote.user = $USER_NAME
+                    remote.identity = $SSH_KEY
+                    remote.allowAnyHosts = true
+                    sshCommand remote: remote, command: "ls -lrt"
                 }
             }
         }
