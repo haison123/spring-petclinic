@@ -31,16 +31,19 @@ pipeline {
 
         
         stage('Deploy') {
+            environment {
+                CRED = credentials('deploy-server')
+            }
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server', keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
+                scripp {
                     def remote = [:]
                     remote.name = 'deploy-server'
                     remote.host = '35.173.171.21'
-                    remote.user = $USER_NAME
-                    remote.identity = $SSH_KEY
+                    remote.user = env.CRED_USR
+                    remote.identity = env.CRED_PSW
                     remote.allowAnyHosts = true
-                    sshCommand remote: remote, command: "ls -lrt"
                 }
+                    sshCommand remote: remote, command: "ls -lrt"
             }
         }
     }
