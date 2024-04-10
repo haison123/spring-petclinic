@@ -34,8 +34,8 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server', keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
                     sh '''
-                        scp -i $SSH_KEY deploy.sh $USER_NAME@35.173.171.21:/home/ubuntu
-                        scp -i $SSH_KEY target/*.jar $USER_NAME@35.173.171.21:/home/ubuntu
+                        scp -o StrictHostKeyChecking=no -i $SSH_KEY deploy.sh $USER_NAME@35.173.171.21:/home/ubuntu
+                        scp -o StrictHostKeyChecking=no -i $SSH_KEY target/*.jar $USER_NAME@35.173.171.21:/home/ubuntu
                         ssh -o StrictHostKeyChecking=no -i $SSH_KEY $USER_NAME@35.173.171.21 << EOF
                         chmod +x /home/ubuntu/deploy.sh
                         /home/ubuntu/deploy.sh
