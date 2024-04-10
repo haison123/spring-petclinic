@@ -13,8 +13,8 @@ else
     done
 fi
 
-echo "[INFO] STARTING THE NEW VERSION OF APPLICATION..."
-nohup java -jar /home/ubuntu/spring-petclinic-*.jar &
+echo "[INFO] S    TARTING THE NEW VERSION OF APPLICATION..."
+nohup java -jar /home/ubuntu/spring-petclinic-*.jar  >/home/ubuntu/output.log 2>&1 &
 
 sleep 15
 
