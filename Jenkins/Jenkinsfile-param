@@ -1,38 +1,19 @@
 pipeline {
-    agent {
-        docker {
-            image 'haison123/maven-ssh:1.0.0'
-            args '-u root'
-        }
-    }
-
+    agent any
+    
     parameters {
         choice(name: 'DEPLOY_TARGET', choices: ['35.173.171.21', 'other-server-ip'], description: 'Deployment target server IP')
         credentials(name: 'SSH_CREDENTIALS', defaultValue: 'deploy-server', description: 'SSH credentials for deployment')
+        choice(name: 'MAVEN_GOALS', choices: ['clean compile test package', 'clean package', 'compile package', 'package'], description: 'Maven goals to execute')
     }
-
+    
     stages {
         stage('Build') {
             steps {
                 // Build the Maven project
-                sh 'mvn clean compile -DskipTests'
+                sh "mvn ${params.MAVEN_GOALS} -DskipTests"
             }
         }
-
-        stage('Unit Test') {
-            steps {
-                // Run unit tests
-                sh 'mvn test'
-            }
-        }
-
-        stage('Package') {
-            steps {
-                // Package
-                sh 'mvn package'
-            }
-        }
-
         
         stage('Deploy') {
             steps {
@@ -46,8 +27,15 @@ pipeline {
                 }
             }
         }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                // Perform SonarQube analysis
+                sh "mvn sonar:sonar"
+            }
+        }
     }
-
+    
     post {
         success {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true

@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+    
+    environment {
+        // Define the credentials ID for Git access
+        GIT_CREDENTIALS_ID = 'your-git-credentials-id'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the code from Git repository using credentials
+                script {
+                    checkout([$class: 'GitSCM', 
+                              branches: [[name: '*/master']], 
+                              userRemoteConfigs: [[
+                                  url: 'https://github.com/your-username/your-repository.git',
+                                  credentialsId: env.GIT_CREDENTIALS_ID
+                              ]]
+                    )
+                }
+            }
+        }
+        // Other stages of your pipeline
+    }
+}

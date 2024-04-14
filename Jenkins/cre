@@ -1,0 +1,70 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the code from Git repository using credentials
+                echo "===============TEST GIT CREDENTIALS==============="
+                withCredentials([usernamePassword(credentialsId: '699560df-5927-449b-8a81-fb73a5206846', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                    sh "echo 'Credentials: $GIT_USERNAME:$GIT_PASSWORD'"
+                    sh "ls -la"
+                    checkout([$class: 'GitSCM', 
+                              branches: [[name: '*/develop']], 
+                              userRemoteConfigs: [[
+                                  url: 'https://github.com/haison123/spring-petclinic.git',
+                                  credentialsId: '699560df-5927-449b-8a81-fb73a5206846'
+                              ]]
+                    ])
+                }
+            }
+        }
+        
+        stage('Username/Password Credentials') {
+            steps {
+                echo "===============TEST USERNAME/PASSWORD CREDENTIALS==============="
+                // Access username/password credentials using withCredentials
+                withCredentials([usernamePassword(credentialsId: 'sample-username-password', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                    echo "Username: $USERNAME"
+                    echo "Password: $PASSWORD"
+                    // You can use the credentials in your pipeline steps securely here
+                }
+            }
+        }
+        
+        stage('SSH Username with Private Key') {
+            steps {
+                echo "===============TEST SSH USERNAME WITH PRIVATE KEY CREDENTIALS==============="
+                // Access SSH credentials using withCredentials
+                withCredentials([sshUserPrivateKey(credentialsId: 'sample-ssh-credentials', keyFileVariable: 'SSH_KEY_FILE', passphraseVariable: '', usernameVariable: 'SSH_USERNAME')]) {
+                    echo "Username: $SSH_USERNAME"
+                    echo "Key File: $SSH_KEY_FILE"
+                    // You can use the credentials in your pipeline steps securely here
+                }
+            }
+        }
+        
+        stage('Secret Text') {
+            steps {
+                echo "===============TEST SECRET TEXT CREDENTIALS==============="
+                // Access secret text credentials using withCredentials
+                withCredentials([string(credentialsId: 'sample-secret-text', variable: 'SECRET_TEXT')]) {
+                    echo "Secret Text: $SECRET_TEXT"
+                    // You can use the secret text in your pipeline steps securely here
+                }
+            }
+        }
+        
+        stage('Secret File') {
+            steps {
+                echo "===============TEST SECRET FILE CREDENTIALS==============="
+                // Access secret file credentials using withCredentials
+                withCredentials([file(credentialsId: 'sample-secret-file', variable: 'SECRET_FILE_PATH')]) {
+                    echo "Secret File Path: $SECRET_FILE_PATH"
+                    sh "cat $SECRET_FILE_PATH"
+                    // kubectl --kubeconfig $SECRET_FILE_PATH get pods
+                }
+            }
+        }
+    }
+}

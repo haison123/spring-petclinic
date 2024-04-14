@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+    
+    environment {
+        // Define environment variables containing credentials or sensitive information
+        USERNAME_PASSWORD = credentials('sample-username-password')
+        SSH_CRED = credentials('sample-ssh-credentials')
+        SECRET_TEXT = credentials('sample-secret-text')
+        SECRET_FILE = credentials('sample-secret-file')
+        GIT_CREDENTIALS_ID = '699560df-5927-449b-8a81-fb73a5206846'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the code from Git repository using credentials
+                echo "===============TEST GIT CREDENTIALS==============="
+                script {
+                    checkout([$class: 'GitSCM', 
+                              branches: [[name: '*/develop']], 
+                              userRemoteConfigs: [[
+                                  url: 'https://github.com/haison123/spring-petclinic.git',
+                                  credentialsId: env.GIT_CREDENTIALS_ID
+                              ]]
+                    ])
+                sh "ls -la"
+                }
+            }
+        }
+        
+        stage('Username/Password Credentials') {
+            steps {
+                echo "===============TEST USERNAME/PASSWORD CREDENTIALS==============="
+                echo "Username: ${env.USERNAME_PASSWORD_USR}"
+                echo "Password: ${env.USERNAME_PASSWORD_PSW}"
+                // sh('curl -u ${env.USERNAME_PASSWORD_USR}:${env.USERNAME_PASSWORD_PSW} https://example-artifactory.com/'')
+            }
+        }
+        
+        stage('SSH Username with Private Key') {
+            steps {
+                echo "===============TEST SSH USERNAME WITH PRIVATE KEY CREDENTIALS==============="
+                echo "Username: ${env.SSH_CRED_USR}"
+                echo "Key: ${env.SSH_CRED_KEY}"
+                
+                // Use the credentials in your pipeline steps
+                // For example, you can use sh or bat steps to execute SSH commands
+                // Example: sh "ssh -i ${env.SSH_CREDENTIALS_KEY} ${env.SSH_CREDENTIALS_USR}@hostname command"
+            }
+        }
+        
+        stage('Secret Text') {
+            steps {
+                echo "===============TEST SECRET TEXT CREDENTIALS==============="
+                echo "Secret Text: ${env.SECRET_TEXT}"
+            }
+        }
+        
+        stage('Secret File') {
+            steps {
+                echo "===============TEST SECRET FILE CREDENTIALS==============="
+                echo "Secret File Path: ${env.SECRET_FILE}"
+                sh "cat ${env.SECRET_FILE}"
+                // kubectl --kubeconfig ${env.SECRET_FILE} get pods
+            }
+        }
+    }
+}
