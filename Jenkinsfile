@@ -19,27 +19,31 @@ pipeline {
             }
         }
 
-        stage('SonarQube Scan') {
-            when {
-                expression {
-                    params.ENABLE_SONAR_SCAN == true
+        stage('Test and Scan') {
+            parallel {
+                stage('SonarQube Scan') {
+                    when {
+                        expression {
+                            params.ENABLE_SONAR_SCAN == true
+                        }
+                    }
+                    steps {
+                        echo "============Running Sonar Scan and publish result to Sonar Server============"
+                        // script {
+                        //     def scannerHome = tool name: 'Sonar', type 'hudson.plugin.sonar.SonarRunnerInstallation';
+                        //     withSonarQubeEnv('SonarQube') {
+                        //         sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectkey=demo -Dsonar.sources=."
+                        //     }
+                        // }
+                    }
                 }
-            }
-            steps {
-                echo "============Running Sonar Scan and publish result to Sonar Server============"
-                // script {
-                //     def scannerHome = tool name: 'Sonar', type 'hudson.plugin.sonar.SonarRunnerInstallation';
-                //     withSonarQubeEnv('SonarQube') {
-                //         sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectkey=demo -Dsonar.sources=."
-                //     }
-                // }
-            }
-        }
 
-        stage('Unit Test') {
-            steps {
-                // Run unit tests
-                sh 'mvn test'
+                stage('Unit Test') {
+                    steps {
+                        // Run unit tests
+                        sh 'mvn test'
+                    }
+                }
             }
         }
 
