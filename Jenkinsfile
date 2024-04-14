@@ -7,7 +7,7 @@ pipeline {
     }
 
     parameters {
-        choice(name: 'DEPLOY_TARGET', choices: ['35.173.171.21', 'other-server-ip'], description: 'Deployment target server IP')
+        booleanParam(defaultValue: true, description: 'Enable SonarQube Scan', name: 'ENABLE_SONAR_SCAN')
         credentials(name: 'SSH_CREDENTIALS', defaultValue: 'deploy-server', description: 'SSH credentials for deployment')
     }
 
@@ -16,6 +16,23 @@ pipeline {
             steps {
                 // Build the Maven project
                 sh 'mvn clean compile -DskipTests'
+            }
+        }
+
+        stage('SonarQube Scan') {
+            when {
+                expression {
+                    params.ENABLE_SONAR_SCAN == true
+                }
+            }
+            steps {
+                echo "============Running Sonar Scan and publish result to Sonar Server============"
+                // script {
+                //     def scannerHome = tool name: 'Sonar', type 'hudson.plugin.sonar.SonarRunnerInstallation';
+                //     withSonarQubeEnv('SonarQube') {
+                //         sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectkey=demo -Dsonar.sources=."
+                //     }
+                // }
             }
         }
 
