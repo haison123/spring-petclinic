@@ -46,7 +46,7 @@ pipeline {
         stage('Build') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
-                    sh "docker login -u $USERNAME -p $PASSWORD"
+                    sh "docker login -u $USER_NAME -p $PASSWORD"
                     echo "==========BUILD DOCKER IMAGE============"
                     sh "docker build -t ${env.DOCKER_IMAGE}:${env.TAG} ."
                     sh "docker tag ${env.DOCKER_IMAGE}:${env.TAG} ${env.DOCKER_IMAGE}:latest"
