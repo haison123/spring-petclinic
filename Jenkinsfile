@@ -45,19 +45,19 @@ pipeline {
 
         stage('Build') {
             steps {
-                echo "==========BUILD DOCKER IMAGE============"
-                sh "docker build -t ${env.DOCKER_IMAGE}:${env.TAG} ."
-                sh "docker tag ${env.DOCKER_IMAGE}:${env.TAG} ${env.DOCKER_IMAGE}:latest"
+                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
+                    sh "docker login -u $USERNAME -p $PASSWORD"
+                    echo "==========BUILD DOCKER IMAGE============"
+                    sh "docker build -t ${env.DOCKER_IMAGE}:${env.TAG} ."
+                    sh "docker tag ${env.DOCKER_IMAGE}:${env.TAG} ${env.DOCKER_IMAGE}:latest"
+                }
             }
         }
 
         stage('Push') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
-                    sh "docker login -u $USERNAME -p $PASSWORD"
-                    sh "docker push ${env.DOCKER_IMAGE}:${env.TAG}"
-                    sh "docker push ${env.DOCKER_IMAGE}:latest"
-                }
+                sh "docker push ${env.DOCKER_IMAGE}:${env.TAG}"
+                sh "docker push ${env.DOCKER_IMAGE}:latest"
             }
         }
         
