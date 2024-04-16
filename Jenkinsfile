@@ -12,69 +12,67 @@ pipeline {
     }
 
     stages {
-        stage('Prepare') {
-            steps {
-                script {
-                    def commitSHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    def timestamp = new Date().format("yyyyMMdd-HHmmss")
-                    TAG = "develop-${commitSHA}-${timestamp}"
+        stage('Test and Scan') {
+            parallel {
+                stage('SonarQube Scan') {
+                    when {
+                        expression {
+                            params.ENABLE_SONAR_SCAN == true
+                        }
+                    }
+                    steps {
+                        echo "============Running Sonar Scan and publish result to Sonar Server============"
+                        // script {
+                        //     def scannerHome = tool name: 'Sonar', type 'hudson.plugin.sonar.SonarRunnerInstallation';
+                        //     withSonarQubeEnv('SonarQube') {
+                        //         sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectkey=demo -Dsonar.sources=."
+                        //     }
+                        // }
+                    }
+                }
+
+                stage('Unit Test') {
+                    steps {
+                        // Run unit tests
+                        sh 'mvn test'
+                    }
                 }
             }
         }
 
         stage('Build') {
             steps {
-                script {
-                    // You can use TAG here
-                    echo "TAG: ${TAG}"
+                sh 'docker build -t ${env.DOCKER_IMAGE}:${env.TAG} .'
+                sh 'docker tag ${env.DOCKER_IMAGE}:${env.TAG} ${env.DOCKER_IMAGE}:latest'
+            }
+        }
+
+        stage('Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
+                    sh '''
+                        docker login -u $USERNAME -p $PASSWORD
+                        docker push ${env.DOCKER_IMAGE}:${env.TAG}
+                        docker push ${env.DOCKER_IMAGE}:latest
+                    '''
                 }
             }
         }
-        // stage('Test and Scan') {
-        //     parallel {
-        //         stage('SonarQube Scan') {
-        //             when {
-        //                 expression {
-        //                     params.ENABLE_SONAR_SCAN == true
-        //                 }
-        //             }
-        //             steps {
-        //                 echo "============Running Sonar Scan and publish result to Sonar Server============"
-        //                 // script {
-        //                 //     def scannerHome = tool name: 'Sonar', type 'hudson.plugin.sonar.SonarRunnerInstallation';
-        //                 //     withSonarQubeEnv('SonarQube') {
-        //                 //         sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectkey=demo -Dsonar.sources=."
-        //                 //     }
-        //                 // }
-        //             }
-        //         }
-
-        //         stage('Unit Test') {
-        //             steps {
-        //                 // Run unit tests
-        //                 sh 'mvn test'
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage('Build') {
-        //     steps {
-        //         sh 'docker build -t ${env.DOCKER_IMAGE}:${env.TAG} .'
-        //         sh 'docker tag ${env.DOCKER_IMAGE}:${env.TAG} ${env.DOCKER_IMAGE}:latest'
-        //     }
-        // }
-
         
-        // stage('Deploy') {
-        //     steps {
-        //         withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
-        //             sh '''
-        //                 docker ps -a --filter "name=^${env.CONTAINER_NAME" --format "{{.ID}}" | xargs -r docker stop || true
-        //                 docker start -d -p 8080:8080 --name ${env.CONTAINER_NAME} ${DOCKER_IMAGE}:$env{TAG}
-        //             '''
-        //         }
-        //     }
-        // }
+        stage('Deploy') {
+            steps {
+                script {
+                    def commitSHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    def timestamp = new Date().format("yyyyMMdd")
+                    TAG = "develop-${commitSHA}-${timestamp}"
+                }
+                withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
+                    sh '''
+                        docker ps -a --filter "name=^${env.CONTAINER_NAME" --format "{{.ID}}" | xargs -r docker stop || true
+                        docker start -d -p 8080:8080 --name ${env.CONTAINER_NAME} ${DOCKER_IMAGE}:$env{TAG}
+                    '''
+                }
+            }
+        }
     }
 }
