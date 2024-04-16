@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'maven'
+    }
 
     parameters {
         booleanParam(defaultValue: true, description: 'Enable SonarQube Scan', name: 'ENABLE_SONAR_SCAN')
