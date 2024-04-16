@@ -15,10 +15,9 @@ pipeline {
         stage('Prepare') {
             steps {
                 script {
-                    def branchName = env.BRANCH_NAME.replaceAll("/", "-")
                     def commitSHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     def timestamp = new Date().format("yyyyMMdd-HHmmss")
-                    TAG = "${branchName}-${commitSHA}-${timestamp}"
+                    TAG = "develop-${commitSHA}-${timestamp}"
                 }
             }
         }
