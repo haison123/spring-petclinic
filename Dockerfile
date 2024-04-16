@@ -20,7 +20,7 @@ FROM openjdk:17-alpine
 WORKDIR /app
 
 # Copy the JAR file from the build stage to the runtime image
-COPY /app/target/*.jar ./app.jar
+COPY --from=build /app/target/*.jar ./app.jar
 
 #sync the time
 RUN unlink /etc/localtime;ln -s  /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
