@@ -1,4 +1,7 @@
-def TAG
+def commitSHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+def timestamp = new Date().format("yyyyMMdd")
+def TAG = "develop-${commitSHA}-${timestamp}"
+
 pipeline {
     agent {
         label 'maven'
@@ -12,6 +15,8 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'haison123/spring-demo'
         CONTAINER_NAME = "spring-demo"
+        // COMMIT_HASH = sh(returnStdout: true, script: 'git rev-parse --short=4 HEAD').trim()
+        // TIMESTAMP = script { return new Date().format("yyyyMMdd") }
     }
 
     stages {
