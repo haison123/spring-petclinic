@@ -1,24 +1,19 @@
 pipeline {
     agent {
-        docker {
-            image 'haison123/maven-ssh:1.0.0'
-            args '-u root'
-        }
+        label 'maven'
     }
 
     parameters {
         booleanParam(defaultValue: true, description: 'Enable SonarQube Scan', name: 'ENABLE_SONAR_SCAN')
         credentials(name: 'SSH_CREDENTIALS', defaultValue: 'deploy-server', description: 'SSH credentials for deployment')
     }
-    
-    stages {
-        stage('Build') {
-            steps {
-                // Build the Maven project
-                sh 'mvn clean compile -DskipTests'
-            }
-        }
 
+    environment {
+        DOCKER_IMAGE = 'haison123/spring-demo'
+        CONTAINER_NAME = "spring-demo"
+    }
+
+    stages {
         stage('Test and Scan') {
             parallel {
                 stage('SonarQube Scan') {
@@ -41,41 +36,50 @@ pipeline {
                 stage('Unit Test') {
                     steps {
                         // Run unit tests
+                        echo "============Run UnitTest============"
                         sh 'mvn test'
                     }
                 }
             }
         }
 
-        stage('Package') {
+        stage('Build') {
             steps {
-                // Package
-                sh 'mvn package'
-            }
-        }
-
-        
-        stage('Deploy') {
-            steps {
-                withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
-                    sh '''
-                        scp -o StrictHostKeyChecking=no -i $SSH_KEY deploy.sh $USER_NAME@35.173.171.21:/home/ubuntu
-                        scp -o StrictHostKeyChecking=no -i $SSH_KEY target/*.jar $USER_NAME@35.173.171.21:/home/ubuntu
-                        ssh -o StrictHostKeyChecking=no -i $SSH_KEY $USER_NAME@35.173.171.21 chmod +x /home/ubuntu/deploy.sh
-                        ssh -o StrictHostKeyChecking=no -i $SSH_KEY $USER_NAME@35.173.171.21 sudo /home/ubuntu/deploy.sh
-                    '''
+                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
+                    script {
+                        def commitSHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        def timestamp = new Date().format("yyyyMMdd")
+                        TAG = "develop-${commitSHA}-${timestamp}"
+                    }
+                    sh "docker login -u $USER_NAME -p $PASSWORD"
+                    echo "==========BUILD DOCKER IMAGE============"
+                    echo "[INFO] Image Tag: ${env.DOCKER_IMAGE}:${TAG}"
+                    sh "docker build -t ${env.DOCKER_IMAGE}:${TAG} ."
+                    sh "docker tag ${env.DOCKER_IMAGE}:${TAG} ${env.DOCKER_IMAGE}:latest"
                 }
             }
         }
-    }
 
-    post {
-        success {
-            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            echo 'Pipeline successful! Artifact saved in /target folder.'
+        stage('Push') {
+            steps {
+                echo "==========PUBLISH DOCKER IMAGE============"
+                echo "[INFO] Publishing image: ${env.DOCKER_IMAGE}:${TAG}"
+                sh "docker push ${env.DOCKER_IMAGE}:${TAG}"
+                echo "[INFO] Publishing image: ${env.DOCKER_IMAGE}:latest"
+                sh "docker push ${env.DOCKER_IMAGE}:latest"
+            }
         }
-        failure {
-            echo 'Pipeline failed!'
+        
+        stage('Deploy') {
+            steps {
+                echo "==========STARTING APPLICATION'S NEW VERSION============"
+                withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
+                    echo "[INFO] Remove old container"
+                    sh "docker ps -a --filter 'name=^${env.CONTAINER_NAME}' --format '{{.ID}}' | xargs -r docker rm -f"
+                    echo "[INFO] Start the container"
+                    sh "docker run -d -p 8080:8080 --name ${env.CONTAINER_NAME} ${DOCKER_IMAGE}:${TAG}"
+                }
+            }
         }
     }
 }
