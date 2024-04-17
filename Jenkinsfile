@@ -71,7 +71,7 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
                     sh "docker ps -a --filter 'name=^${env.CONTAINER_NAME}' --format '{{.ID}}' | xargs -r docker stop || true"
-                    sh "docker start -d -p 8080:8080 --name ${env.CONTAINER_NAME} ${DOCKER_IMAGE}:${TAG}"
+                    sh "docker run -d -p 8080:8080 --name ${env.CONTAINER_NAME} ${DOCKER_IMAGE}:${TAG}"
                 }
             }
         }
