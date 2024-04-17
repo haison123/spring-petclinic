@@ -46,33 +46,34 @@ pipeline {
         stage('Build') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
+                    script {
+                        def commitSHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        def timestamp = new Date().format("yyyyMMdd")
+                        TAG = "develop-${commitSHA}-${timestamp}"
+                    }
                     sh "docker login -u $USER_NAME -p $PASSWORD"
                     echo "==========BUILD DOCKER IMAGE============"
+                    echo "Image Tag: ${env.DOCKER_IMAGE}:${env.TAG}"
                     sh "docker build -t ${env.DOCKER_IMAGE}:${env.TAG} ."
                     sh "docker tag ${env.DOCKER_IMAGE}:${env.TAG} ${env.DOCKER_IMAGE}:latest"
                 }
             }
         }
 
-        stage('Push') {
-            steps {
-                sh "docker push ${env.DOCKER_IMAGE}:${env.TAG}"
-                sh "docker push ${env.DOCKER_IMAGE}:latest"
-            }
-        }
+        // stage('Push') {
+        //     steps {
+        //         sh "docker push ${env.DOCKER_IMAGE}:${env.TAG}"
+        //         sh "docker push ${env.DOCKER_IMAGE}:latest"
+        //     }
+        // }
         
-        stage('Deploy') {
-            steps {
-                script {
-                    def commitSHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    def timestamp = new Date().format("yyyyMMdd")
-                    TAG = "develop-${commitSHA}-${timestamp}"
-                }
-                withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
-                    sh "docker ps -a --filter 'name=^${env.CONTAINER_NAME}' --format '{{.ID}}' | xargs -r docker stop || true"
-                    sh "docker start -d -p 8080:8080 --name ${env.CONTAINER_NAME} ${DOCKER_IMAGE}:$env{TAG}"
-                }
-            }
-        }
+        // stage('Deploy') {
+        //     steps {
+        //         withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
+        //             sh "docker ps -a --filter 'name=^${env.CONTAINER_NAME}' --format '{{.ID}}' | xargs -r docker stop || true"
+        //             sh "docker start -d -p 8080:8080 --name ${env.CONTAINER_NAME} ${DOCKER_IMAGE}:$env{TAG}"
+        //         }
+        //     }
+        // }
     }
 }
