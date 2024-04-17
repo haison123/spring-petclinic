@@ -1,15 +1,11 @@
 pipeline {
     agent {
-        docker {
-            image 'haison123/maven-ssh:1.0.0'
-            args '-u root'
-        }
-    }
-
-    parameters {
-        booleanParam(defaultValue: true, description: 'Enable SonarQube Scan', name: 'ENABLE_SONAR_SCAN')
-        credentials(name: 'SSH_CREDENTIALS', defaultValue: 'deploy-server', description: 'SSH credentials for deployment')
-    }
+                docker {
+                    image 'haison123/maven-ssh:1.0.0'
+                    args '-u root'
+                    // args '-v $HOME/.m2:/root/.m2'
+                }
+            }
 
     stages {
         stage('Build') {
@@ -19,37 +15,16 @@ pipeline {
             }
         }
 
-        stage('Test and Scan') {
-            parallel {
-                stage('SonarQube Scan') {
-                    when {
-                        expression {
-                            params.ENABLE_SONAR_SCAN == true
-                        }
-                    }
-                    steps {
-                        echo "============Running Sonar Scan and publish result to Sonar Server============"
-                        // script {
-                        //     def scannerHome = tool name: 'Sonar', type 'hudson.plugin.sonar.SonarRunnerInstallation';
-                        //     withSonarQubeEnv('SonarQube') {
-                        //         sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectkey=demo -Dsonar.sources=."
-                        //     }
-                        // }
-                    }
-                }
-
-                stage('Unit Test') {
-                    steps {
-                        // Run unit tests
-                        sh 'mvn test'
-                    }
-                }
+        stage('Unit Test') {
+            steps {
+                // Run unit tests
+                sh 'mvn test'
             }
         }
 
         stage('Package') {
             steps {
-                // Package
+                // Build the Maven project
                 sh 'mvn package'
             }
         }
@@ -57,7 +32,7 @@ pipeline {
         
         stage('Deploy') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server', keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
                     sh '''
                         scp -o StrictHostKeyChecking=no -i $SSH_KEY deploy.sh $USER_NAME@35.173.171.21:/home/ubuntu
                         scp -o StrictHostKeyChecking=no -i $SSH_KEY target/*.jar $USER_NAME@35.173.171.21:/home/ubuntu
