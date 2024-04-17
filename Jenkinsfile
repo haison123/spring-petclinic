@@ -11,8 +11,6 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'haison123/spring-demo'
         CONTAINER_NAME = "spring-demo"
-        // COMMIT_HASH = sh(returnStdout: true, script: 'git rev-parse --short=4 HEAD').trim()
-        // TIMESTAMP = script { return new Date().format("yyyyMMdd") }
     }
 
     stages {
@@ -56,26 +54,26 @@ pipeline {
                     sh "docker login -u $USER_NAME -p $PASSWORD"
                     echo "==========BUILD DOCKER IMAGE============"
                     echo "Image Tag: ${env.DOCKER_IMAGE}:${TAG}"
-                    sh "docker build -t ${env.DOCKER_IMAGE}:${env.TAG} ."
-                    sh "docker tag ${env.DOCKER_IMAGE}:${env.TAG} ${env.DOCKER_IMAGE}:latest"
+                    sh "docker build -t ${env.DOCKER_IMAGE}:${TAG} ."
+                    sh "docker tag ${env.DOCKER_IMAGE}:${TAG} ${env.DOCKER_IMAGE}:latest"
                 }
             }
         }
 
-        // stage('Push') {
-        //     steps {
-        //         sh "docker push ${env.DOCKER_IMAGE}:${env.TAG}"
-        //         sh "docker push ${env.DOCKER_IMAGE}:latest"
-        //     }
-        // }
+        stage('Push') {
+            steps {
+                sh "docker push ${env.DOCKER_IMAGE}:${TAG}"
+                sh "docker push ${env.DOCKER_IMAGE}:latest"
+            }
+        }
         
-        // stage('Deploy') {
-        //     steps {
-        //         withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
-        //             sh "docker ps -a --filter 'name=^${env.CONTAINER_NAME}' --format '{{.ID}}' | xargs -r docker stop || true"
-        //             sh "docker start -d -p 8080:8080 --name ${env.CONTAINER_NAME} ${DOCKER_IMAGE}:$env{TAG}"
-        //         }
-        //     }
-        // }
+        stage('Deploy') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
+                    sh "docker ps -a --filter 'name=^${env.CONTAINER_NAME}' --format '{{.ID}}' | xargs -r docker stop || true"
+                    sh "docker start -d -p 8080:8080 --name ${env.CONTAINER_NAME} ${DOCKER_IMAGE}:${TAG}"
+                }
+            }
+        }
     }
 }
