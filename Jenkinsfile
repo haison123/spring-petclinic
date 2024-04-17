@@ -23,7 +23,6 @@ pipeline {
                         }
                     }
                     steps {
-                        sh 'mvn -v'
                         echo "============Running Sonar Scan and publish result to Sonar Server============"
                         // script {
                         //     def scannerHome = tool name: 'Sonar', type 'hudson.plugin.sonar.SonarRunnerInstallation';
@@ -37,6 +36,7 @@ pipeline {
                 stage('Unit Test') {
                     steps {
                         // Run unit tests
+                        echo "============Run UnitTest============"
                         sh 'mvn test'
                     }
                 }
@@ -53,7 +53,7 @@ pipeline {
                     }
                     sh "docker login -u $USER_NAME -p $PASSWORD"
                     echo "==========BUILD DOCKER IMAGE============"
-                    echo "Image Tag: ${env.DOCKER_IMAGE}:${TAG}"
+                    echo "[INFO] Image Tag: ${env.DOCKER_IMAGE}:${TAG}"
                     sh "docker build -t ${env.DOCKER_IMAGE}:${TAG} ."
                     sh "docker tag ${env.DOCKER_IMAGE}:${TAG} ${env.DOCKER_IMAGE}:latest"
                 }
@@ -62,16 +62,22 @@ pipeline {
 
         stage('Push') {
             steps {
+                echo "==========PUBLISH DOCKER IMAGE============"
+                echo "[INFO] Publishing image: ${env.DOCKER_IMAGE}:${TAG}"
                 sh "docker push ${env.DOCKER_IMAGE}:${TAG}"
+                echo "[INFO] Publishing image: ${env.DOCKER_IMAGE}:latest"
                 sh "docker push ${env.DOCKER_IMAGE}:latest"
             }
         }
         
         stage('Deploy') {
             steps {
+                echo "==========STARTING APPLICATION'S NEW VERSION============"
                 withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
+                    echo "[INFO] Remove old container"
                     sh "docker ps -a --filter 'name=^${env.CONTAINER_NAME}' --format '{{.ID}}' | xargs -r docker rm -f"
                     sh "sleep 5"
+                    echo "[INFO] Start the container"
                     sh "docker run -d -p 8080:8080 --name ${env.CONTAINER_NAME} ${DOCKER_IMAGE}:${TAG}"
                 }
             }
