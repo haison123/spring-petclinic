@@ -1,7 +1,3 @@
-def commitSHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-def timestamp = new Date().format("yyyyMMdd")
-def TAG = "develop-${commitSHA}-${timestamp}"
-
 pipeline {
     agent {
         label 'maven'
@@ -59,7 +55,7 @@ pipeline {
                     }
                     sh "docker login -u $USER_NAME -p $PASSWORD"
                     echo "==========BUILD DOCKER IMAGE============"
-                    echo "Image Tag: ${env.DOCKER_IMAGE}:${env.TAG}"
+                    echo "Image Tag: ${env.DOCKER_IMAGE}:${TAG}"
                     sh "docker build -t ${env.DOCKER_IMAGE}:${env.TAG} ."
                     sh "docker tag ${env.DOCKER_IMAGE}:${env.TAG} ${env.DOCKER_IMAGE}:latest"
                 }
