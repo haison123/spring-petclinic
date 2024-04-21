@@ -17,7 +17,7 @@ pipeline {
         
         stage('PackerValidate') {
             steps {
-                sh 'packer init .'
+                // sh 'packer init .'
                 sh 'packer validate packer-config.json'
             }
         }
