@@ -32,6 +32,7 @@ pipeline {
                     echo "AMI_ID : ${env.AMI_ID}"
                 }
             }
+        }
         
         stage('TriggerDownstream') {
             steps {
