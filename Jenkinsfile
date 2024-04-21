@@ -32,14 +32,14 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'export AMI_ID="ami-12345678'
+                sh 'export AMI_ID="ami-12345678"'
             }
         }
         
         stage('Main') {
             steps {
                 // Trigger parameterized build on other project with parameters
-                build job: 'my-job-name', parameters: [
+                build job: 'spring-clinic-infra', parameters: [
                     [$class: 'StringParameterValue', name: 'AMI_ID', value: env.AMI_ID]
                 ]
             }
