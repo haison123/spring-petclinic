@@ -25,9 +25,7 @@ pipeline {
             steps {
                 sh 'packer build packer-config.json 2>&1 | tee output.txt'
                 script {
-                    def lastLine = sh(script: 'tail -n 1 output.txt', returnStdout: true).trim()
-                    // Extract the AMI ID using a regular expression
-                    def amiID = (lastLine =~ /ami-[a-f0-9]+/)[0]
+                    def amiID = sh(script: 'tail -2 output.txt | head -2 | awk "match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }"', returnStdout: true).trim()
                     env.AMI_ID = amiID
                     echo "AMI_ID : ${env.AMI_ID}"
                 }
