@@ -17,7 +17,9 @@ pipeline {
         
         stage('PackerValidate') {
             steps {
-                // sh 'packer init .'
+                sh 'ls'
+                sh 'pwd'
+                sh 'ls target'
                 sh 'packer validate packer-config.json'
             }
         }
