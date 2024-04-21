@@ -3,83 +3,37 @@ pipeline {
         label 'maven'
     }
 
-    parameters {
-        booleanParam(defaultValue: true, description: 'Enable SonarQube Scan', name: 'ENABLE_SONAR_SCAN')
-        credentials(name: 'SSH_CREDENTIALS', defaultValue: 'deploy-server', description: 'SSH credentials for deployment')
-    }
-
     environment {
-        DOCKER_IMAGE = 'haison123/spring-demo'
-        CONTAINER_NAME = "spring-demo"
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
-
+    
     stages {
-        stage('Test and Scan') {
-            parallel {
-                stage('SonarQube Scan') {
-                    when {
-                        expression {
-                            params.ENABLE_SONAR_SCAN == true
-                        }
-                    }
-                    steps {
-                        echo "============Running Sonar Scan and publish result to Sonar Server============"
-                        // script {
-                        //     def scannerHome = tool name: 'Sonar', type 'hudson.plugin.sonar.SonarRunnerInstallation';
-                        //     withSonarQubeEnv('SonarQube') {
-                        //         sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectkey=demo -Dsonar.sources=."
-                        //     }
-                        // }
-                    }
-                }
-
-                stage('Unit Test') {
-                    steps {
-                        // Run unit tests
-                        echo "============Run UnitTest============"
-                        sh 'mvn test'
-                    }
-                }
-            }
-        }
-
-        stage('Build') {
+        stage('BuildApp') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
-                    script {
-                        def commitSHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                        def timestamp = new Date().format("yyyyMMdd")
-                        TAG = "develop-${commitSHA}-${timestamp}"
-                    }
-                    sh "docker login -u $USER_NAME -p $PASSWORD"
-                    echo "==========BUILD DOCKER IMAGE============"
-                    echo "[INFO] Image Tag: ${env.DOCKER_IMAGE}:${TAG}"
-                    sh "docker build -t ${env.DOCKER_IMAGE}:${TAG} ."
-                    sh "docker tag ${env.DOCKER_IMAGE}:${TAG} ${env.DOCKER_IMAGE}:latest"
-                }
-            }
-        }
-
-        stage('Push') {
-            steps {
-                echo "==========PUBLISH DOCKER IMAGE============"
-                echo "[INFO] Publishing image: ${env.DOCKER_IMAGE}:${TAG}"
-                sh "docker push ${env.DOCKER_IMAGE}:${TAG}"
-                echo "[INFO] Publishing image: ${env.DOCKER_IMAGE}:latest"
-                sh "docker push ${env.DOCKER_IMAGE}:latest"
+                sh 'mvn clean package'
             }
         }
         
-        stage('Deploy') {
+        stage('PackerValidate') {
             steps {
-                echo "==========STARTING APPLICATION'S NEW VERSION============"
-                withCredentials([sshUserPrivateKey(credentialsId: params.SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY', usernameVariable: 'USER_NAME')]) {
-                    echo "[INFO] Remove old container"
-                    sh "docker ps -a --filter 'name=^${env.CONTAINER_NAME}' --format '{{.ID}}' | xargs -r docker rm -f"
-                    echo "[INFO] Start the container"
-                    sh "docker run -d -p 8080:8080 --name ${env.CONTAINER_NAME} ${DOCKER_IMAGE}:${TAG}"
-                }
+                sh 'packer validate packer-config.json'
             }
         }
+        
+        stage('PackerBuild') {
+            steps {
+                sh "packer build packer-config.json 2>&1 | tee output.txt"
+                echo "UP_STREAM_AMI=$(tail -2 output.txt | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }')" >> ami.env
+                echo "==========================================="
+                echo "AMI ID : $(cat ami.env)"
+            }
+
+            post {
+                success {
+                    archiveArtifacts artifacts: 'output.txt', reports: [dotenv('output.txt')]
+                }
+            }
+        }        
     }
 }
