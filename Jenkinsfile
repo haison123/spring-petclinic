@@ -32,7 +32,11 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'export AMI_ID="ami-12345678"'
+                script {
+                    // Set the AMI_ID environment variable
+                    env.AMI_ID = "ami-12345678"
+                    echo "AMI_ID: ${env.AMI_ID}"
+                }
             }
         }
         
@@ -40,7 +44,7 @@ pipeline {
             steps {
                 // Trigger parameterized build on other project with parameters
                 build job: 'spring-clinic-infra', parameters: [
-                    [$class: 'StringParameterValue', name: 'AMI_ID', value: 'ami-12345678']
+                    [$class: 'StringParameterValue', name: 'AMI_ID', value: env.AMI_ID]
                 ]
             }
         }
